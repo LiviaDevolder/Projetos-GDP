@@ -6,6 +6,7 @@
     const admin = require("./routes/admin")
     const path = require('path')
     const mongoose = require('mongoose')
+    const urlencodedParse = bodyParser.urlencoded({ extended: false })
 
 // Configurações
     // Body Parser
@@ -33,7 +34,8 @@
         res.send('Lista de Posts')
     })
 
-    app.use('/admin', admin)
+    app.use("/admin", urlencodedParse, admin)
+    
 
 // Outros
 const PORT = 8081
