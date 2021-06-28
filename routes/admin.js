@@ -99,7 +99,7 @@ router.post("/categorias/deletar", (req, res) => {
 })
 
 router.get("/postagens", (req, res) => {
-    Postagem.find().populate("categoria").sort({data: "desc"}).then((postagens) => {
+    Postagem.find().lean().populate("categoria").sort({data:"desc"}).then((postagens) => {
         res.render("admin/postagens", {postagens: postagens})
     }).catch((err) => {
         req.flash("error_msg", "Houve um erro ao listar as postagens")
@@ -143,6 +143,23 @@ router.post("/postagens/nova", (req, res) => {
             res.redirect("/admin/postagens")
         })
     }
+})
+
+router.get("/postagens/edit/:id", (req, res) => {
+
+    Postagem.findOne({_id: req.params.id}).lean().then((postagem) => {
+
+        Categoria.find().then((categorias) => {
+            res.render("admin/editpostagens", {categorias: categorias, postagem: postagem})
+        }).catch((err) => {
+            req.flash("error_msg", "Houve um erro ao listar as categorias")
+            res.redirect("/admin/postagens")
+        })
+
+    }).catch((err) => {
+        req.flash("erro_msg", "Houve um erro ao carregar o formulário de edição")
+        res.redirect("/admin/postagens")
+    })
 })
 
 module.exports = router
