@@ -147,17 +147,37 @@ router.post("/postagens/nova", (req, res) => {
 
 router.get("/postagens/edit/:id", (req, res) => {
 
-    Postagem.findOne({_id: req.params.id}).lean().then((postagem) => {
+    Postagem.findOne({ _id: req.params.id }).populate("categoria").then((postagem) => {
+        
+        Categoria.find({ _id: { $ne: postagem.categoria._id } }).lean().sort({nome:'asc'}).then((categorias) => {
+            res.render('admin/editPostagens', { postagem: postagem.toJSON(), categorias: categorias })
+        })
+    }).catch((err) => {
+        req.flash("error_msg", "Houve um erro ao editar a categoria!")
+        res.redirect("/admin/postagens")
+    })
+})
 
-        Categoria.find().then((categorias) => {
-            res.render("admin/editpostagens", {categorias: categorias, postagem: postagem})
+router.post("/postagem/edit", (req, res) => {
+
+    Postagem.findOne({_id: req.body.id}).then((postagem) => {
+
+        postagem.titulo = req.body.titulo
+        postagem.slug = req.body.slug
+        postagem.descricao = req.body.descricao
+        postagem.conteudo = req.body.conteudo
+        postagem.categoria = req.body.categoria
+
+        postagem.save().then(() => {
+            req.flash("success_msg", "Postagem editada com sucesso")
+            res.redirect("/admin/postagens")
         }).catch((err) => {
-            req.flash("error_msg", "Houve um erro ao listar as categorias")
+            req.flash("error_msg", "Erro interno")
             res.redirect("/admin/postagens")
         })
 
     }).catch((err) => {
-        req.flash("erro_msg", "Houve um erro ao carregar o formulário de edição")
+        req.flash("error_msg", "Houve um erro ao salvar a edição")
         res.redirect("/admin/postagens")
     })
 })
